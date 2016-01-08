@@ -6,7 +6,7 @@
 /*   By: mbouhier <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2015/12/31 18:15:51 by mbouhier          #+#    #+#             */
-/*   Updated: 2016/01/04 16:22:23 by mbouhier         ###   ########.fr       */
+/*   Updated: 2016/01/08 18:22:45 by mbouhier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 static int	ft_end_line(char *tmp2, char *tmp)
 {
+	tmp[0] = 0;
 	if (!tmp2)
 		return (0);
 	*tmp2 = '\0';
@@ -36,26 +37,24 @@ static char	*ft_strjoin_free(char **line, char *buf)
 int			get_next_line(int const fd, char **line)
 {
 	int			ret;
-	int			end;
 	char		buf[BUFF_SIZE + 1];
 	char		*tmp2;
-	static char tmp[2147483648][BUFF_SIZE];
+	static char tmp[256][BUFF_SIZE];
 
-	end = 0;
-	if (!line || fd < 0 || BUFF_SIZE < 1)
+	if (!line || fd < 0 || fd > 255 || BUFF_SIZE < 1)
 		return (-1);
 	if (!(*line = *tmp[fd] ? ft_strdup(tmp[fd]) : ft_strnew(1)))
 		return (-1);
-	while (!(tmp2 = ft_strchr(*line, '\n')) &&
-		(ret = read(fd, buf, BUFF_SIZE)) > 0)
+	while ((ret = read(fd, buf, BUFF_SIZE)) > 0)
 	{
-		if (buf[ret] == '\0')
-			end = 1;
 		buf[ret] = '\0';
 		if (!(*line = ft_strjoin_free(line, buf)))
 			return (-1);
+		if (ft_strchr(buf, '\n'))
+			break ;
 	}
-	if (ft_end_line(tmp2, tmp[fd]) == 1 || end == 1 || ret > 0)
+	tmp2 = ft_strchr(*line, '\n');
+	if (ft_end_line(tmp2, tmp[fd]) == 1 || ft_strlen(*line) || ret > 0)
 		return (1);
 	return (ret == 0 ? 0 : -1);
 }
